@@ -1,0 +1,130 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #e0f7fa; /* Light blue background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    color: #333;
+}
+
+.quiz-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    width: 90%;
+    max-width: 700px;
+    padding: 30px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+h1 {
+    color: #00796b; /* Dark cyan */
+    margin-bottom: 25px;
+    font-size: 2.2em;
+}
+
+h2 {
+    color: #004d40; /* Even darker cyan */
+    margin-bottom: 15px;
+    font-size: 1.6em;
+}
+
+#question-text {
+    font-size: 1.3em;
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+.options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.option-button {
+    background-color: #f0f0f0;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 15px 20px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+    text-align: left;
+    outline: none;
+}
+
+.option-button:hover:not(:disabled) {
+    background-color: #e0e0e0;
+    border-color: #bbb;
+    transform: translateY(-2px);
+}
+
+.option-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.option-button.selected {
+    background-color: #b3e5fc; /* Light blue when selected */
+    border-color: #03a9f4; /* Blue */
+    font-weight: bold;
+}
+
+.option-button.correct {
+    background-color: #c8e6c9; /* Light green for correct */
+    border-color: #4caf50; /* Green */
+    font-weight: bold;
+}
+
+.option-button.incorrect {
+    background-color: #ffcdd2; /* Light red for incorrect */
+    border-color: #f44336; /* Red */
+    font-weight: bold;
+}
+
+#next-button, #restart-button {
+    background-color: #00796b; /* Dark cyan */
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 25px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin-top: 20px;
+    outline: none;
+}
+
+#next-button:hover:not(:disabled), #restart-button:hover {
+    background-color: #004d40; /* Even darker cyan */
+    transform: translateY(-2px);
+}
+
+#next-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.feedback {
+    margin-top: 15px;
+    font-size: 1.1em;
+    min-height: 25px; /* Prevent layout shift */
+}
+
+.feedback.correct {
+    color: #28a745; /* Bootstrap success green */
+    font-weight: bold;
+}
+
+.feedback.incorrect {
+    color: #dc3545; /* Bootstrap danger red */
+    font-weight: bold;
+}
+
+.hidden {
+    display: none;
+}
