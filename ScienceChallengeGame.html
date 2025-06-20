@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Science & Metric Quiz</title>
+    <style>
+        /* --- style.css content starts here --- */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4; /* Initial background color - will be overridden by JS */
+            transition: background-color 0.5s ease; /* Smooth transition for color change */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-size: 2.2em;
+        }
+
+        .definition {
+            font-size: 1.2em;
+            margin-bottom: 25px;
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-left: 5px solid #3498db;
+            border-radius: 5px;
+            line-height: 1.5;
+        }
+
+        #choices-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two columns */
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .choice-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 1.1em; /* Ensure base font size is reasonable */
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .choice-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .choice-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+
+        .feedback {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+            min-height: 25px; /* To prevent layout shift */
+        }
+
+        .feedback.correct {
+            color: #27ae60; /* Green */
+        }
+
+        .feedback.incorrect {
+            color: #e74c3c; /* Red */
+        }
+
+        .score {
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #555;
+        }
+
+        #restart-btn {
+            background-color: #2ecc71; /* Green for restart */
+            margin-top: 30px;
+        }
+
+        #restart-btn:hover {
+            background-color: #27ad60;
+        }
+
+        #download-certificate-btn {
+            background-color: #f39c12; /* Orange for certificate */
+            margin-top: 20px;
+        }
+        #download-certificate-btn:hover {
+            background-color: #e67e22;
+        }
+
+
+        .hidden {
+            display: none;
+        }
+
+        /* Certificate Styling (for PDF) */
+        .certificate {
+            font-family: 'Arial', sans-serif;
+            border: 10px solid #3498db;
+            padding: 40px;
+            width: 700px; /* Standard A4 width approx */
+            height: 500px; /* Standard A4 height approx */
+            text-align: center;
+            box-sizing: border-box; /* Include padding in width/height */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to bottom, #e0f2f7, #ffffff);
+        }
+        .certificate h2 {
+            font-size: 3em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            border-bottom: 3px double #3498db;
+            padding-bottom: 10px;
+        }
+        .certificate p {
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            color: #555;
+        }
+        .certificate .student-name {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #3498db;
+            margin: 20px 0;
+            text-transform: capitalize;
+        }
+        .certificate .score-text {
+            font-size: 1.8em;
+            color: #27ae60;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .certificate .date {
+            font-size: 1.1em;
+            color: #777;
+            margin-top: 30px;
+        }
+        /* --- style.css content ends here --- */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Science & Metric Conversion Quiz</h1>
+        <div id="quiz-area">
+            <p id="definition-display" class="definition"></p>
+            <div id="choices-container">
+                </div>
+            <p id="feedback" class="feedback"></p>
+            <p id="score-display" class="score">Score: 0 points</p>
+        </div>
+        <button id="restart-btn" class="hidden">Play Again</button>
+        <button id="download-certificate-btn" class="hidden">Download Certificate</button>
+    </div>
+
+    <audio id="dingSound" src="https://www.soundjay.com/buttons/sounds/button-2.mp3" preload="auto"></audio>
+    <audio id="buzzSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3" preload="auto"></audio>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script>
+        /* --- script.js content starts here --- */
+        const scienceTermsData = {
+            "Atom": "The basic unit of a chemical element, consisting of a nucleus surrounded by electrons.",
+            "Cell": "The basic structural and functional unit of all known organisms.",
+            "Photosynthesis": "The process by which green plants and some other organisms use sunlight to synthesize foods from carbon dioxide and water.",
+            "Respiration": "The process in living organisms involving the production of energy, typically with the intake of oxygen and the release of carbon dioxide from the oxidation of complex organic substances.",
+            "Ecosystem": "A biological community of interacting organisms and their physical environment.",
+            "Producer": "An organism that produces its own food, typically through photosynthesis (e.g., plants).",
+            "Consumer": "An organism that obtains energy by feeding on other organisms.",
+            "Decomposer": "An organism, especially a soil bacterium, fungus, or invertebrate, that decomposes organic material.",
+            "Force": "A push or a pull upon an object resulting from the object's interaction with another object.",
+            "Gravity": "The force that attracts a body toward the center of the earth, or toward any other physical body having mass.",
+            "Mass": "A measure of the amount of matter in an object.",
+            "Weight": "A measure of the force of gravity on an object.",
+            "Density": "The degree of compactness of a substance; mass per unit volume.",
+            "Mixture": "A substance containing two or more substances that are not chemically bonded together.",
+            "Solution": "A liquid mixture in which the minor component (the solute) is uniformly distributed within the major component (the solvent).",
+            "Solid": "A state of matter characterized by particles arranged in a fixed, regular pattern.",
+            "Liquid": "A state of matter that has a definite volume but no definite shape.",
+            "Gas": "A state of matter that has no definite shape or volume.",
+            "Conductor": "A material or device that conducts or transmits heat, electricity, or sound.",
+            "Insulator": "A substance or device that does not readily conduct electricity, heat, or sound.",
+            "Kinetic Energy": "The energy an object possesses due to its motion.",
+            "Potential Energy": "Stored energy due to an object's position or state.",
+            "Proton": "A stable subatomic particle found in the atomic nucleus, with a positive electric charge equal in magnitude to that of an electron.",
+            "Electron": "A stable subatomic particle with a negative charge, found in all atoms and acting as the primary carrier of electricity.",
+            "Neutron": "A subatomic particle of about the same mass as a proton but without an electric charge, present in all atomic nuclei except those of ordinary hydrogen.",
+            "pH": "A measure of the acidity or alkalinity of a solution.",
+            "Evaporation": "The process of a substance in a liquid state changing to a gaseous state due to an increase in temperature or pressure.",
+            "Condensation": "The process by which water vapor in the air is changed into liquid water, typically forming clouds.",
+            "Inheritance": "The passing on of traits from parents to their offspring.",
+            "Habitat": "The natural home or environment of an animal, plant, or other organism.",
+            "Nerve Cell": "A basic unit of the nervous system that transmits electrical signals.",
+            "Bacteria": "Microscopic, single-celled organisms that exist in every environment, inside and outside other organisms.",
+            "Virus": "An infective agent that typically consists of a nucleic acid molecule in a protein coat, able to multiply only within the living cells of a host.",
+            "Magnetism": "A physical phenomenon produced by the motion of electric charge, resulting in attractive and repulsive forces between objects.",
+            "Circuit": "A closed loop through which electricity can flow.",
+            "Resistance": "The opposition that a substance offers to the flow of electric current.",
+            "Chemical Reaction": "A process that involves rearrangement of the molecular or ionic structure of a substance, as opposed to a change in physical form or a nuclear reaction.",
+            "Compound": "A substance formed when two or more chemical elements are chemically bonded together.",
+            "Element": "A pure substance consisting only of atoms that all have the same numbers of protons in their atomic nuclei.",
+            "Molecules": "A group of two or more atoms held together by chemical bonds.",
+            "Pollution": "The presence in or introduction into the environment of a substance or thing that has harmful or poisonous effects.",
+            "Conservation": "The careful preservation and protection of something, especially planned management of a natural resource to prevent exploitation, destruction, or neglect.",
+            "Climate": "The long-term average weather pattern in a region.",
+            "Weather": "The state of the atmosphere at a place and time as regards heat, dryness, sunshine, wind, rain, etc.",
+            "Geology": "The science that deals with the earth's physical structure and substance, its history, and the processes that act on it.",
+            "Volcano": "A mountain or hill, typically conical, having a crater or vent through which lava, rock fragments, hot vapor, and gas are being or have been erupted from the earth's crust.",
+            "Earthquake": "A sudden and violent shaking of the ground, sometimes causing great destruction, as a result of movements within the earth's crust or volcanic action.",
+            "Fossil": "The remains or impression of a prehistoric plant or animal embedded in rock and preserved in petrified form.",
+            "Adaptation": "A trait that helps an organism survive and reproduce in its environment.",
+            "Niche": "The specific role or position an organism plays in its environment."
+        };
+
+        const metricConversionProblems = [
+            { question: "Convert 2 meters to centimeters.", answer: 200, unit: "cm" },
+            { question: "Convert 500 milliliters to liters.", answer: 0.5, unit: "L" },
+            { question: "Convert 3 kilometers to meters.", answer: 3000, unit: "m" },
+            { question: "Convert 1.5 kilograms to grams.", answer: 1500, unit: "g" },
+            { question: "Convert 2500 grams to kilograms.", answer: 2.5, unit: "kg" },
+            { question: "Convert 75 centimeters to meters.", answer: 0.75, unit: "m" },
+            { question: "Convert 0.8 liters to milliliters.", answer: 800, unit: "ml" },
+            { question: "Convert 400 meters to kilometers.", answer: 0.4, unit: "km" },
+            { question: "Convert 50 milligrams to grams.", answer: 0.05, unit: "g" },
+            { question: "Convert 0.2 meters to millimeters.", answer: 200, unit: "mm" },
+            { question: "Convert 10,000 milliliters to liters.", answer: 10, unit: "L" },
+            { question: "Convert 0.005 kilograms to milligrams.", answer: 5000, unit: "mg" },
+            { question: "Convert 1200 centimeters to meters.", answer: 12, unit: "m" },
+            { question: "Convert 6 liters to cubic centimeters.", answer: 6000, unit: "cm³" }, // 1L = 1000 cm³
+            { question: "Convert 2.5 meters to kilometers.", answer: 0.0025, unit: "km" },
+            { question: "Convert 750 grams to kilograms.", answer: 0.75, unit: "kg" },
+            { question: "Convert 35 millimeters to centimeters.", answer: 3.5, unit: "cm" },
+            { question: "Convert 0.1 liters to milliliters.", answer: 100, unit: "ml" },
+            { question: "Convert 1000 micrograms to milligrams.", answer: 1, unit: "mg" }, // 1 mg = 1000 mcg
+            { question: "Convert 0.5 kilometers to centimeters.", answer: 50000, unit: "cm" } // 0.5 km = 500 m = 50000 cm
+        ];
+
+        const NUM_QUESTIONS_PER_QUIZ = 10; // Total questions in a quiz (mix of both types)
+        const TERM_QUESTION_RATIO = 0.5; // 50% science terms, 50% metric conversions
+
+        let scienceTerms = Object.keys(scienceTermsData);
+        let currentQuestion = null; // Stores the current question object {type: '...', ...}
+        let totalScore = 0;
+        let totalQuestionsAsked = 0;
+
+        let askedScienceTermsInRound = [];
+        let askedConversionsInRound = [];
+        let playerName = "Student";
+
+        // UPDATED: More vivid background colors to cycle through
+        const backgroundColors = [
+            '#FF6347',  // Tomato (vibrant red-orange)
+            '#3CB371',  // Medium Sea Green (vibrant green)
+            '#1E90FF',  // Dodger Blue (bright blue)
+            '#FF1493',  // Deep Pink (intense pink)
+            '#DAA520'   // Goldenrod (a deeper, vibrant yellow)
+        ];
+        let currentBackgroundColorIndex = 0;
+
+        const definitionDisplay = document.getElementById('definition-display');
+        const choicesContainer = document.getElementById('choices-container');
+        const feedbackDisplay = document.getElementById('feedback');
+        const scoreDisplay = document.getElementById('score-display');
+        const restartBtn = document.getElementById('restart-btn');
+        const downloadCertificateBtn = document.getElementById('download-certificate-btn');
+        const quizArea = document.getElementById('quiz-area');
+
+        const dingSound = document.getElementById('dingSound');
+        const buzzSound = document.getElementById('buzzSound');
+
+        function playDing() {
+            dingSound.currentTime = 0;
+            dingSound.play();
+        }
+
+        function playBuzz() {
+            buzzSound.currentTime = 0;
+            buzzSound.play();
+        }
+
+        function initializeQuiz() {
+            playerName = prompt("Welcome to the Science & Metric Quiz! What's your name?") || "Student";
+            totalScore = 0;
+            totalQuestionsAsked = 0;
+            askedScienceTermsInRound = [];
+            askedConversionsInRound = [];
+            currentBackgroundColorIndex = 0; // Reset background color index
+            // Set initial background color to the first vivid color
+            document.body.style.backgroundColor = backgroundColors[currentBackgroundColorIndex];
+            scoreDisplay.textContent = `Score: ${totalScore} points`;
+            restartBtn.classList.add('hidden');
+            downloadCertificateBtn.classList.add('hidden');
+            quizArea.classList.remove('hidden');
+            getRandomQuestion();
+        }
+
+        // --- Helper for generating distractors for numeric conversions ---
+        function generateNumericDistractors(correctAnswer, numberOfDistractors = 3) {
+            let distractors = new Set();
+            const originalValue = parseFloat(correctAnswer);
+
+            // Add common power-of-10 errors
+            if (originalValue > 0) {
+                distractors.add(originalValue / 10);
+                distractors.add(originalValue * 10);
+                distractors.add(originalValue / 100);
+                distractors.add(originalValue * 100);
+            }
+
+            // Add some slightly off-by-one values (e.g., for 500, try 499, 501)
+            distractors.add(originalValue + (originalValue * 0.01 || 1));
+            distractors.add(originalValue - (originalValue * 0.01 || 1));
+
+
+            // Filter out the correct answer itself and ensure numbers are not too weird
+            let filteredDistractors = Array.from(distractors).filter(d =>
+                Math.abs(d - originalValue) > 0.0001 && // Not exactly the correct answer
+                d > 0.00000001 && // Avoid extremely small numbers
+                d < 100000000 // Avoid extremely large numbers
+            ).map(d => parseFloat(d.toPrecision(5))); // Keep reasonable precision
+
+            // If not enough unique, add random distractors
+            while (filteredDistractors.length < numberOfDistractors) {
+                let randomFactor = (Math.random() * 2 - 1) * 2; // Between -2 and 2
+                if (randomFactor === 0) randomFactor = 0.5; // Avoid zero factor
+                let newDistractor = parseFloat((originalValue * Math.pow(10, randomFactor)).toPrecision(5));
+                if (!filteredDistractors.includes(newDistractor) && Math.abs(newDistractor - originalValue) > 0.0001 && newDistractor > 0 && newDistractor < 100000000) {
+                    filteredDistractors.push(newDistractor);
+                } else if (!filteredDistractors.includes(newDistractor) && Math.abs(newDistractor - originalValue) > 0.0001) {
+                     // Try adding/subtracting a bit more for small numbers
+                     newDistractor = parseFloat((originalValue + (Math.random() * 100 - 50)).toPrecision(5));
+                     if (!filteredDistractors.includes(newDistractor) && Math.abs(newDistractor - originalValue) > 0.0001) {
+                         filteredDistractors.push(newDistractor);
+                     }
+                }
+            }
+
+            // Take the first 'numberOfDistractors' unique ones
+            return filteredDistractors.slice(0, numberOfDistractors);
+        }
+
+        function getRandomQuestion() {
+            feedbackDisplay.textContent = '';
+            feedbackDisplay.classList.remove('correct', 'incorrect');
+            choicesContainer.innerHTML = ''; // Clear previous choices
+
+            if (totalQuestionsAsked >= NUM_QUESTIONS_PER_QUIZ) {
+                endQuiz();
+                return;
+            }
+
+            let questionType;
+            let availableScienceTerms = scienceTerms.filter(term => !askedScienceTermsInRound.includes(term));
+            let availableConversions = metricConversionProblems.filter(problem => !askedConversionsInRound.includes(problem.question));
+
+            const maxScienceQuestions = Math.round(NUM_QUESTIONS_PER_QUIZ * TERM_QUESTION_RATIO);
+            const maxConversionQuestions = NUM_QUESTIONS_PER_QUIZ - maxScienceQuestions;
+
+            const scienceQuestionsYetToAsk = maxScienceQuestions - askedScienceTermsInRound.length;
+            const conversionQuestionsYetToAsk = maxConversionQuestions - askedConversionsInRound.length;
+
+            // Prioritize question types if one is about to run out or has too few
+            if (scienceQuestionsYetToAsk <= 0 && conversionQuestionsYetToAsk > 0) {
+                questionType = 'conversion';
+            } else if (conversionQuestionsYetToAsk <= 0 && scienceQuestionsYetToAsk > 0) {
+                questionType = 'term';
+            } else if (availableScienceTerms.length === 0 && availableConversions.length > 0) {
+                questionType = 'conversion';
+            } else if (availableConversions.length === 0 && availableScienceTerms.length > 0) {
+                questionType = 'term';
+            } else if (availableScienceTerms.length === 0 && availableConversions.length === 0) {
+                // All questions exhausted or cycles through. Reset if needed for long quizzes.
+                askedScienceTermsInRound = [];
+                askedConversionsInRound = [];
+                availableScienceTerms = scienceTerms;
+                availableConversions = metricConversionProblems;
+                // If still no questions, something is wrong or quiz is truly finished.
+                if (availableScienceTerms.length === 0 && availableConversions.length === 0) {
+                     endQuiz();
+                     return;
+                }
+                 // After reset, try to pick type again
+                 questionType = Math.random() < TERM_QUESTION_RATIO ? 'term' : 'conversion';
+
+            } else {
+                questionType = Math.random() < TERM_QUESTION_RATIO ? 'term' : 'conversion';
+            }
+
+
+            if (questionType === 'term') {
+                const termIndex = Math.floor(Math.random() * availableScienceTerms.length);
+                const term = availableScienceTerms[termIndex];
+                currentQuestion = {
+                    type: 'term',
+                    term: term,
+                    definition: scienceTermsData[term]
+                };
+                askedScienceTermsInRound.push(term);
+            } else { // questionType === 'conversion'
+                const problemIndex = Math.floor(Math.random() * availableConversions.length);
+                const problem = availableConversions[problemIndex];
+                currentQuestion = {
+                    type: 'conversion',
+                    question: problem.question,
+                    correctAnswer: problem.answer,
+                    unit: problem.unit
+                };
+                askedConversionsInRound.push(problem.question);
+            }
+
+            definitionDisplay.textContent = currentQuestion.type === 'term' ? currentQuestion.definition : currentQuestion.question;
+
+            // Generate choices based on question type
+            let choices = [];
+            if (currentQuestion.type === 'term') {
+                choices.push(currentQuestion.term);
+                let tempAllTerms = scienceTerms.filter(t => t !== currentQuestion.term);
+                while (choices.length < 4 && tempAllTerms.length > 0) {
+                    const randIndex = Math.floor(Math.random() * tempAllTerms.length);
+                    choices.push(tempAllTerms.splice(randIndex, 1)[0]);
+                }
+            } else { // Conversion problem
+                choices.push(currentQuestion.correctAnswer + ' ' + currentQuestion.unit); // Correct answer with unit
+                let distractors = generateNumericDistractors(currentQuestion.correctAnswer);
+                distractors.forEach(d => choices.push(d + ' ' + currentQuestion.unit));
+                // Trim to 4 choices if too many distractors were generated (shouldn't happen often)
+                choices = choices.slice(0, 4);
+            }
+
+            // Shuffle choices
+            choices.sort(() => Math.random() - 0.5);
+
+            choicesContainer.innerHTML = '';
+            choices.forEach(choice => {
+                const button = document.createElement('button');
+                button.classList.add('choice-btn');
+                button.textContent = choice;
+                button.addEventListener('click', () => checkAnswer(choice));
+                choicesContainer.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selectedChoice) {
+            totalQuestionsAsked++;
+            Array.from(choicesContainer.children).forEach(btn => btn.disabled = true);
+
+            let isCorrect = false;
+            if (currentQuestion.type === 'term') {
+                isCorrect = (selectedChoice.toLowerCase() === currentQuestion.term.toLowerCase());
+            } else { // Conversion problem
+                const selectedValue = parseFloat(selectedChoice);
+                isCorrect = Math.abs(selectedValue - currentQuestion.correctAnswer) < 0.0001;
+            }
+
+            if (isCorrect) {
+                const pointsAwarded = Math.floor(Math.random() * 10000) + 1; // Points 1-10000
+                totalScore += pointsAwarded;
+                feedbackDisplay.textContent = `Correct! 🎉 You earned ${pointsAwarded} points!`;
+                feedbackDisplay.classList.add('correct');
+                feedbackDisplay.classList.remove('incorrect');
+                playDing();
+
+                // NEW: Change background color on correct answer
+                currentBackgroundColorIndex = (currentBackgroundColorIndex + 1) % backgroundColors.length;
+                document.body.style.backgroundColor = backgroundColors[currentBackgroundColorIndex];
+
+            } else {
+                let correctAnswerDisplay = currentQuestion.type === 'term' ? currentQuestion.term : currentQuestion.correctAnswer + ' ' + currentQuestion.unit;
+                feedbackDisplay.textContent = `Incorrect. The correct answer was: "${correctAnswerDisplay}" 🤔`;
+                feedbackDisplay.classList.add('incorrect');
+                feedbackDisplay.classList.remove('correct');
+                playBuzz();
+            }
+
+            scoreDisplay.textContent = `Score: ${totalScore} points`;
+
+            setTimeout(() => {
+                if (totalQuestionsAsked < NUM_QUESTIONS_PER_QUIZ) {
+                    getRandomQuestion();
+                } else {
+                    endQuiz();
+                }
+            }, 2000);
+        }
+
+        function endQuiz() {
+            quizArea.classList.add('hidden');
+            feedbackDisplay.textContent = `Quiz Finished! You answered ${totalQuestionsAsked} questions and scored a total of ${totalScore} points!`;
+            feedbackDisplay.classList.remove('correct', 'incorrect');
+            restartBtn.classList.remove('hidden');
+            downloadCertificateBtn.classList.remove('hidden');
+            // Reset background to a neutral color or the first one for the next play
+            document.body.style.backgroundColor = '#f4f4f4'; // Or backgroundColors[0]
+        }
+
+        function generateCertificate() {
+            const date = new Date();
+            const dateString = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            const certificateContent = `
+                <div class="certificate">
+                    <h2>Certificate of Achievement</h2>
+                    <p>This certifies that</p>
+                    <p class="student-name">${playerName}</p>
+                    <p>has successfully completed the</p>
+                    <p><strong>Science & Metric Conversion Quiz</strong></p>
+                    <p class="score-text">and achieved a total score of ${totalScore} points!</p>
+                    <p class="date">Awarded on: ${dateString}</p>
+                </div>
+            `;
+
+            html2pdf().from(certificateContent).set({
+                margin: 0.5,
+                filename: `Quiz_Certificate_${playerName.replace(/\s/g, '_')}.pdf`,
+                html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+            }).save();
+        }
+
+        // Event Listeners
+        restartBtn.addEventListener('click', initializeQuiz);
+        downloadCertificateBtn.addEventListener('click', generateCertificate);
+
+        // Initial call to start the quiz when the page loads
+        initializeQuiz();
+        /* --- script.js content ends here --- */
+    </script>
+</body>
+</html>
