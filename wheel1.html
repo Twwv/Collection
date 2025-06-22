@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NGSS Vocabulary Fortune</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a3e72;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #f9d423;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #0d2b4e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .puzzle-display {
+            font-size: 32px;
+            letter-spacing: 10px;
+            margin: 30px 0;
+            min-height: 50px;
+            font-family: monospace;
+        }
+
+        .letter {
+            display: inline-block;
+            width: 30px;
+            margin: 0 5px;
+            border-bottom: 3px solid white;
+            text-align: center;
+        }
+
+        .letter.visible {
+            border-bottom: none;
+        }
+
+        .keyboard {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 600px;
+            margin: 0 auto;
+            gap: 8px;
+        }
+
+        .letter-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: #f9d423;
+            color: #1a3e72;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .letter-btn:hover:not(:disabled) {
+            background-color: #ffdf40;
+            transform: scale(1.1);
+        }
+
+        .letter-btn:disabled {
+            background-color: #666;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .letter-btn.vowel {
+            background-color: #ff6b6b;
+            color: white;
+        }
+
+        .letter-btn.vowel:hover:not(:disabled) {
+            background-color: #ff8a8a;
+        }
+
+        .teams {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .team {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            min-width: 150px;
+        }
+
+        .team.active {
+            background-color: rgba(249, 212, 35, 0.3);
+            border: 2px solid #f9d423;
+        }
+
+        .team-score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f9d423;
+        }
+
+        .controls {
+            margin: 20px 0;
+        }
+
+        .message {
+            font-size: 18px;
+            margin: 10px 0;
+            min-height: 27px;
+            color: #f9d423;
+        }
+
+        .category {
+            font-size: 20px;
+            color: #a3d2ff;
+            margin-bottom: 10px;
+        }
+
+        .solve-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        .solve-btn:hover {
+            background-color: #45a049;
+        }
+
+        .solve-input {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            margin-right: 10px;
+        }
+
+        .new-game-btn {
+            background-color: #9c27b0;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        .new-game-btn:hover {
+            background-color: #8e24aa;
+        }
+
+        .rules {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .team-selection {
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .team-selection label {
+            margin-right: 10px;
+        }
+
+        .team-selection select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #f9d423;
+            background-color: #0d2b4e;
+            color: white;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>NGSS Vocabulary Fortune</h1>
+        <p class="category" id="category">Category: Life Science</p>
+
+        <div class="rules">
+            <h3>Game Rules:</h3>
+            <ul>
+                <li>Correct consonant guess: +5 points</li>
+                <li>Correct vowel guess: -5 points</li>
+                <li>Incorrect guess: lose turn</li>
+                <li>Solve the puzzle for 100 bonus points!</li>
+            </ul>
+        </div>
+
+        <div class="team-selection">
+            <label for="num-teams">Number of Teams:</label>
+            <select id="num-teams">
+                <option value="2">2 Teams</option>
+                <option value="3" selected>3 Teams</option>
+                <option value="4">4 Teams</option>
+                <option value="5">5 Teams</option>
+            </select>
+        </div>
+
+        <div class="teams" id="teams">
+            </div>
+
+        <div class="message" id="message">Team 1's turn! Guess a letter!</div>
+
+        <div class="puzzle-display" id="puzzle-display"></div>
+
+        <div class="controls">
+            <input type="text" class="solve-input" id="solve-input" placeholder="Enter your solution">
+            <button class="solve-btn" id="solve-btn">SOLVE</button>
+            <button class="new-game-btn" id="new-game-btn">NEW GAME</button>
+        </div>
+
+        <div class="keyboard" id="keyboard"></div>
+    </div>
+
+    <script>
+        // Game data - 40 NGSS terms
+        const puzzles = [
+            // Life Science (16 total)
+            { category: "Life Science", phrase: "PHOTOSYNTHESIS", hint: "Process plants use to make food" },
+            { category: "Life Science", phrase: "ECOSYSTEM", hint: "Community of living and nonliving things interacting" },
+            { category: "Life Science", phrase: "NATURAL SELECTION", hint: "Process where organisms better adapted survive" },
+            { category: "Life Science", phrase: "CELL DIVISION", hint: "Process by which cells multiply" },
+            { category: "Life Science", phrase: "MITOCHONDRIA", hint: "Powerhouse of the cell" },
+            { category: "Life Science", phrase: "CHLOROPLAST", hint: "Organelle where photosynthesis occurs" },
+            { category: "Life Science", phrase: "HOMEOSTASIS", hint: "Maintenance of stable internal conditions" },
+            { category: "Life Science", phrase: "BIODIVERSITY", hint: "Variety of life in an ecosystem" },
+            { category: "Life Science", phrase: "ADAPTATION", hint: "Trait that improves survival" },
+            { category: "Life Science", phrase: "HETEROZYGOUS", hint: "Having two different alleles for a trait" },
+            { category: "Life Science", phrase: "PHEROMONES", hint: "Chemical signals between organisms" },
+            { category: "Life Science", phrase: "SYMBIOSIS", hint: "Long-term biological interaction" },
+            { category: "Life Science", phrase: "BIOMES", hint: "Large community of plants and animals" },
+            { category: "Life Science", phrase: "GENOTYPE", hint: "Genetic makeup of an organism" },
+            { category: "Life Science", phrase: "PHENOTYPE", hint: "Observable characteristics" },
+            { category: "Life Science", phrase: "DECOMPOSERS", hint: "Organisms that break down dead matter" },
+
+            // Physical Science (12 total)
+            { category: "Physical Science", phrase: "KINETIC ENERGY", hint: "Energy of motion" },
+            { category: "Physical Science", phrase: "CHEMICAL REACTION", hint: "Process where substances transform" },
+            { category: "Physical Science", phrase: "WAVELENGTH", hint: "Distance between wave peaks" },
+            { category: "Physical Science", phrase: "NEWTONS LAWS", hint: "Laws describing motion" },
+            { category: "Physical Science", phrase: "POTENTIAL ENERGY", hint: "Stored energy based on position" },
+            { category: "Physical Science", phrase: "ELECTROMAGNET", hint: "Temporary magnet from electric current" },
+            { category: "Physical Science", phrase: "THERMAL ENERGY", hint: "Energy from particle movement" },
+            { category: "Physical Science", phrase: "CATALYST", hint: "Substance that speeds up reactions" },
+            { category: "Physical Science", phrase: "INSULATOR", hint: "Material that resists energy flow" },
+            { category: "Physical Science", phrase: "CONDUCTOR", hint: "Material that allows energy flow" },
+            { category: "Physical Science", phrase: "REFRACTION", hint: "Bending of waves through mediums" },
+            { category: "Physical Science", phrase: "DENSITY", hint: "Mass per unit volume" },
+
+            // Earth & Space Science (12 total)
+            { category: "Earth & Space Science", phrase: "PLATE TECTONICS", hint: "Movement of Earth's lithosphere" },
+            { category: "Earth & Space Science", phrase: "CLIMATE CHANGE", hint: "Long-term shifts in weather patterns" },
+            { category: "Earth & Space Science", phrase: "SOLAR SYSTEM", hint: "Sun and orbiting celestial bodies" },
+            { category: "Earth & Space Science", phrase: "WEATHERING", hint: "Breaking down of rocks over time" },
+            { category: "Earth & Space Science", phrase: "GREENHOUSE EFFECT", hint: "Trapping of heat by atmospheric gases" },
+            { category: "Earth & Space Science", phrase: "WATER CYCLE", hint: "Continuous movement of water on Earth" },
+            { category: "Earth & Space Science", phrase: "ROCK CYCLE", hint: "Transformation of rock types over time" },
+            { category: "Earth & Space Science", phrase: "ECLIPSE", hint: "Alignment of celestial bodies blocking light" },
+            { category: "Earth & Space Science", phrase: "CORIOLIS EFFECT", hint: "Deflection of moving objects due to rotation" },
+            { category: "Earth & Space Science", phrase: "SEDIMENTATION", hint: "Deposition of eroded material" },
+            { category: "Earth & Space Science", phrase: "LITHOSPHERE", hint: "Rigid outer part of Earth" },
+            { category: "Earth & Space Science", phrase: "PHOTOSPHERE", hint: "Visible surface of the Sun" }
+        ];
+
+        // Game state
+        let currentPuzzle;
+        let displayedPuzzle = [];
+        let guessedLetters = [];
+        let currentTeam = 0;
+        let teams = []; // This will be populated dynamically
+        let gameOver = false;
+        const vowels = ['A', 'E', 'I', 'O', 'U'];
+        const CONSONANT_VALUE = 5;
+        const VOWEL_COST = 5;
+        const SOLVE_BONUS = 100;
+
+        // DOM elements
+        const puzzleDisplay = document.getElementById('puzzle-display');
+        const keyboard = document.getElementById('keyboard');
+        const messageEl = document.getElementById('message');
+        const solveBtn = document.getElementById('solve-btn');
+        const solveInput = document.getElementById('solve-input');
+        const newGameBtn = document.getElementById('new-game-btn');
+        const categoryEl = document.getElementById('category');
+        const numTeamsSelect = document.getElementById('num-teams');
+        const teamsContainer = document.getElementById('teams');
+
+        // Initialize the game
+        function initGame() {
+            // Create keyboard
+            keyboard.innerHTML = '';
+            for (let i = 65; i <= 90; i++) {
+                const letter = String.fromCharCode(i);
+                const btn = document.createElement('button');
+                btn.className = `letter-btn ${vowels.includes(letter) ? 'vowel' : ''}`;
+                btn.textContent = letter;
+                btn.id = `letter-${letter}`;
+                btn.addEventListener('click', () => guessLetter(letter));
+                keyboard.appendChild(btn);
+            }
+
+            // Set up event listeners
+            solveBtn.addEventListener('click', attemptSolve);
+            newGameBtn.addEventListener('click', startNewGame);
+            numTeamsSelect.addEventListener('change', startNewGame); // Restart game when number of teams changes
+
+            // Start a new game
+            startNewGame();
+        }
+
+        // Start a new game
+        function startNewGame() {
+            // Reset game state
+            currentTeam = 0;
+            gameOver = false;
+            teams = []; // Clear existing teams
+
+            // Get number of teams from selection
+            const numberOfTeams = parseInt(numTeamsSelect.value);
+
+            // Create team objects and update display
+            teamsContainer.innerHTML = ''; // Clear previous team displays
+            for (let i = 1; i <= numberOfTeams; i++) {
+                teams.push({ name: `Team ${i}`, score: 0 });
+
+                const teamDiv = document.createElement('div');
+                teamDiv.className = 'team';
+                teamDiv.id = `team${i}`;
+                teamDiv.innerHTML = `
+                    <h3>Team ${i}</h3>
+                    <div class="team-score" id="score${i}">0</div>
+                `;
+                teamsContainer.appendChild(teamDiv);
+            }
+
+
+            // Select a random puzzle
+            selectRandomPuzzle();
+
+            // Update UI
+            updateTeamsDisplay();
+            updatePuzzleDisplay();
+            updateMessage(`${teams[currentTeam].name}'s turn! Guess a letter!`);
+
+            // Enable all letter buttons
+            document.querySelectorAll('.letter-btn').forEach(btn => {
+                btn.disabled = false;
+            });
+        }
+
+        // Select a random puzzle
+        function selectRandomPuzzle() {
+            const randomIndex = Math.floor(Math.random() * puzzles.length);
+            currentPuzzle = puzzles[randomIndex];
+            displayedPuzzle = [];
+            guessedLetters = [];
+
+            // Create the displayed puzzle array
+            for (let i = 0; i < currentPuzzle.phrase.length; i++) {
+                const char = currentPuzzle.phrase[i];
+                if (char === ' ') {
+                    displayedPuzzle.push({ char: ' ', visible: true });
+                } else {
+                    displayedPuzzle.push({ char, visible: false });
+                }
+            }
+
+            // Update category display
+            categoryEl.textContent = `Category: ${currentPuzzle.category} (${currentPuzzle.hint})`;
+        }
+
+        // Handle letter guess
+        function guessLetter(letter) {
+            if (gameOver) return;
+
+            const isVowel = vowels.includes(letter);
+
+            // Disable the letter button
+            document.getElementById(`letter-${letter}`).disabled = true;
+
+            // Check if the letter is in the puzzle
+            let foundCount = 0; // Count occurrences of the letter
+            for (let i = 0; i < currentPuzzle.phrase.length; i++) {
+                if (currentPuzzle.phrase[i] === letter) {
+                    displayedPuzzle[i].visible = true;
+                    foundCount++; // Increment count for each occurrence
+                }
+            }
+
+            if (foundCount > 0) {
+                if (isVowel) {
+                    teams[currentTeam].score -= (VOWEL_COST * foundCount); // Multiply cost by count
+                    updateMessage(`${teams[currentTeam].name} bought vowel ${letter} (-${VOWEL_COST * foundCount} points)`);
+                } else {
+                    teams[currentTeam].score += (CONSONANT_VALUE * foundCount); // Multiply value by count
+                    updateMessage(`${teams[currentTeam].name} found consonant ${letter} (+${CONSONANT_VALUE * foundCount} points)`);
+                }
+
+                // Check if puzzle is solved
+                if (checkPuzzleSolved()) {
+                    puzzleSolved();
+                    return;
+                }
+            } else {
+                updateMessage(`Sorry, there are no ${letter}'s in the puzzle.`);
+                nextTeam();
+            }
+
+            updatePuzzleDisplay();
+            updateTeamsDisplay();
+        }
+
+        // Check if puzzle is solved
+        function checkPuzzleSolved() {
+            return displayedPuzzle.every(item => item.visible);
+        }
+
+        // Handle puzzle solved
+        function puzzleSolved() {
+            teams[currentTeam].score += SOLVE_BONUS;
+            updateMessage(`${teams[currentTeam].name} solved the puzzle and earns ${SOLVE_BONUS} bonus points!`);
+            gameOver = true;
+
+            // Disable all buttons
+            document.querySelectorAll('.letter-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+
+            updateTeamsDisplay();
+            updatePuzzleDisplay();
+        }
+
+        // Attempt to solve the puzzle
+        function attemptSolve() {
+            if (gameOver) return;
+
+            const solution = solveInput.value.trim().toUpperCase();
+            solveInput.value = '';
+
+            if (solution === currentPuzzle.phrase) {
+                // Correct solution
+                displayedPuzzle.forEach(item => item.visible = true);
+                puzzleSolved();
+            } else {
+                // Incorrect solution
+                updateMessage(`Sorry, "${solution}" is not correct.`);
+                nextTeam();
+            }
+
+            updatePuzzleDisplay();
+        }
+
+        // Move to next team
+        function nextTeam() {
+            currentTeam = (currentTeam + 1) % teams.length;
+            updateMessage(`${teams[currentTeam].name}'s turn! Guess a letter!`);
+            updateTeamsDisplay();
+        }
+
+        // Update puzzle display
+        function updatePuzzleDisplay() {
+            puzzleDisplay.innerHTML = '';
+
+            displayedPuzzle.forEach(item => {
+                const span = document.createElement('span');
+                span.className = `letter ${item.visible ? 'visible' : ''}`;
+                span.textContent = item.visible ? item.char : '';
+                puzzleDisplay.appendChild(span);
+            });
+        }
+
+        // Update teams display
+        function updateTeamsDisplay() {
+            teams.forEach((team, index) => {
+                const teamEl = document.getElementById(`team${index + 1}`);
+                const scoreEl = document.getElementById(`score${index + 1}`);
+
+                if (teamEl && scoreEl) { // Ensure elements exist before updating
+                    scoreEl.textContent = team.score;
+
+                    if (index === currentTeam && !gameOver) {
+                        teamEl.classList.add('active');
+                    } else {
+                        teamEl.classList.remove('active');
+                    }
+                }
+            });
+        }
+
+        // Update message display
+        function updateMessage(msg) {
+            messageEl.textContent = msg;
+        }
+
+        // Initialize the game when page loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>
